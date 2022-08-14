@@ -34,6 +34,11 @@
 #ifndef INC_YACSGL_PIXEL_H_
 #define INC_YACSGL_PIXEL_H_
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+
 /******************** INCLUDES ***********************************************/
 #include <stdbool.h>
 #include <stdint.h>
@@ -50,6 +55,10 @@ typedef enum{
 /******************** GLOBAL VARIABLES OF MODULE *****************************/
 
 /******************** API FUNCTION PROTOTYPE *********************************/
+#ifdef __cplusplus
+}
+#endif
+
 #endif /* INC_TEMPLATE_H_ */
 
 /**\} */

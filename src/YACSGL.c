@@ -31,7 +31,10 @@
  */
 
 /******************** INCLUDES ***********************************************/
+#include "YACSGL.h"
 #include "YACSGL_pixel.h"
+
+#include <string.h>
 
 /******************** CONSTANTS OF MODULE ************************************/
 
@@ -42,10 +45,272 @@
 /******************** GLOBAL VARIABLES OF MODULE *****************************/
 
 /******************** LOCAL FUNCTION PROTOTYPE *******************************/
+static inline void YACSGL_rect_line_width_height (YACSGL_frame_t* frame, 
+                                                    uint16_t x_topleft_width, 
+                                                    uint16_t y_topleft_height, 
+                                                    uint16_t x_bottomright_width, 
+                                                    uint16_t y_bottomright_height, 
+                                                    YACSGL_pixel_t pixel, 
+                                                    uint16_t step,
+                                                    uint16_t step_corrector);
+
+                                                    
+static inline void YACSGL_rect_line_heigth_width (YACSGL_frame_t* frame, 
+                                                    uint16_t x_topleft_width, 
+                                                    uint16_t y_topleft_height, 
+                                                    uint16_t x_bottomright_width, 
+                                                    uint16_t y_bottomright_height, 
+                                                    YACSGL_pixel_t pixel, 
+                                                    uint16_t step,
+                                                    uint16_t step_corrector);
 
 /******************** API FUNCTIONS ******************************************/
+static inline void YACSGL_set_pixel(YACSGL_frame_t* frame, 
+                        uint16_t x_width, 
+                        uint16_t y_height, 
+                        YACSGL_pixel_t pixel)
+{
+    if (x_width > frame->frame_x_width  || y_height > frame->frame_y_heigth)
+    {
+        return;
+    }
+
+    /* Retrieve the byte where the pixel to be changed lies */
+    uint8_t tmp_byte = *(frame->frame_buffer + x_width / 8 + (y_height * frame->frame_x_width / 8));
+	// if (pixel == YACSGL_P_WHITE)
+	// {
+	//	tmp_byte |= pixel << (7 - (x_width %8));
+	// }
+	// else
+	// {
+	//	tmp_byte &= ~(pixel << (7 - (x_width %8)));
+	// }
+    tmp_byte |= pixel << (7 - (x_width %8));
+    tmp_byte &= ~(((!pixel) & 0b1) << (7 - (x_width %8)));
+	*(frame->frame_buffer + x_width / 8 + (y_height * frame->frame_x_width / 8)) = tmp_byte;
+}
+
+void YACSGL_rect_fill(YACSGL_frame_t* frame, 
+                        uint16_t x_topleft_width, 
+                        uint16_t y_topleft_height, 
+                        uint16_t x_bottomright_width, 
+                        uint16_t y_bottomright_height, 
+                        YACSGL_pixel_t pixel)
+{
+    /* Try to be clever and optimize with memset for aligned area */
+    /* Detect first aligned byte */
+    uint16_t x_align_start = (x_topleft_width / 8);
+    uint16_t x_remaining_before = (x_topleft_width % 8);
+    if(x_remaining_before)
+    {
+        x_align_start++;
+    }
+
+    /* Detect last aligned byte */
+    uint16_t x_align_end = (x_bottomright_width / 8);
+    uint16_t x_remaining_after = (x_bottomright_width % 8);
+    if(x_remaining_after)
+    {
+        x_align_end++;
+    }
+
+    /* If a memset can trully occur */
+    if(x_align_start != x_align_end)
+    {
+        int32_t delta_y = y_bottomright_height - y_topleft_height; /* Compute how many line can be memset */
+        uint8_t value_to_set = 0;
+        if(pixel == YACSGL_P_WHITE)
+        {
+            value_to_set = 0xFF;
+        }
+
+        for(uint16_t i = 0; i < delta_y; i++)
+        {
+            memset(&frame->frame_buffer[x_align_start + ((i + y_topleft_height)) * (frame->frame_x_width / 8)], 
+                    value_to_set, 
+                    x_align_end - x_align_start);
+        }
+    }
+
+    /* Complete the missing area of the rectangle with vertical lines */
+    for(uint16_t i = 0; i < x_remaining_before; i++)
+    {
+         YACSGL_line(frame, x_topleft_width + i, y_topleft_height, x_topleft_width + i, y_bottomright_height, pixel);
+    }
+    for(uint16_t i = 0; i < x_remaining_after; i++)
+    {
+         YACSGL_line(frame, 
+                        x_topleft_width + x_remaining_before + (x_align_end - x_align_start) * 8 + i, 
+                        y_topleft_height, 
+                        x_topleft_width + x_remaining_before + (x_align_end - x_align_start) * 8 + i,
+                        y_bottomright_height, pixel);
+    }
+
+    return;
+}
+
+void YACSGL_rect_line(YACSGL_frame_t* frame, 
+                        uint16_t x_topleft_width, 
+                        uint16_t y_topleft_height, 
+                        uint16_t x_bottomright_width, 
+                        uint16_t y_bottomright_height, 
+                        YACSGL_pixel_t pixel)
+{
+    /* Draw the four line of the rectangle */
+    /* Top horizontal line */
+    YACSGL_line(frame, x_topleft_width, y_topleft_height, x_bottomright_width, y_topleft_height, pixel);
+    /* Bottom horizontal line */
+    YACSGL_line(frame, x_topleft_width, y_bottomright_height, x_bottomright_width, y_bottomright_height, pixel);
+
+    /* Left vertical line */
+    YACSGL_line(frame, x_topleft_width, y_topleft_height, x_topleft_width, y_bottomright_height, pixel);
+    /* Rigth vertical line */
+    YACSGL_line(frame, x_bottomright_width, y_topleft_height, x_bottomright_width, y_bottomright_height, pixel);
+
+
+    return;
+}   
+
+
+void YACSGL_line(YACSGL_frame_t* frame, 
+                        uint16_t x_topleft_width, 
+                        uint16_t y_topleft_height, 
+                        uint16_t x_bottomright_width, 
+                        uint16_t y_bottomright_height, 
+                        YACSGL_pixel_t pixel)
+{
+    int32_t delta_x = x_bottomright_width - x_topleft_width;
+    int32_t delta_y = y_bottomright_height - y_topleft_height;
+
+    uint16_t step = 0;
+    uint16_t step_corrector = 0;
+
+    if(delta_x < delta_y)
+    {
+        /* Detect a pure vertical line case */
+        if (delta_x == 0)
+        {
+            step = delta_y;
+            step_corrector = 0;
+        }
+        else        
+        {
+            
+            step = delta_y / delta_x;            
+            step_corrector = delta_y % delta_x;
+        }
+        
+        YACSGL_rect_line_heigth_width(frame, 
+                                    x_topleft_width, 
+                                    y_topleft_height, 
+                                    x_bottomright_width, 
+                                    y_bottomright_height, 
+                                    pixel, 
+                                    step,
+                                    step_corrector);
+
+    }
+    else
+    {
+        /* Detect a pure horizontal line case */
+        if (delta_y == 0)
+        {
+            step = delta_x;
+            step_corrector = 0;
+        }
+        else       
+        {            
+            step = delta_x / delta_y;
+            step_corrector = delta_x % delta_y;
+        }        
+        
+        YACSGL_rect_line_width_height(frame, 
+                                        x_topleft_width, 
+                                        y_topleft_height, 
+                                        x_bottomright_width, 
+                                        y_bottomright_height, 
+                                        pixel, 
+                                        step,
+                                        step_corrector);
+    }
+    
+    //int32_t delta_xy = delta_x - delta_y;
+
+ 
+
+    return;
+}  
+
+void YACSGL_circle_fill(YACSGL_frame_t* frame, 
+                        uint16_t x_topleft_width, 
+                        uint16_t y_topleft_height, 
+                        uint16_t radius, 
+                        YACSGL_pixel_t pixel)
+{
+    return;
+}
+
+void YACSGL_circle_line(YACSGL_frame_t* frame, 
+                        uint16_t x_topleft_width, 
+                        uint16_t y_topleft_height, 
+                        uint16_t radius, 
+                        YACSGL_pixel_t pixel)
+{
+    return;
+}                                
 
 /******************** LOCAL FUNCTIONS ****************************************/
+static inline void YACSGL_rect_line_width_height (YACSGL_frame_t* frame, 
+                                                    uint16_t x_topleft_width, 
+                                                    uint16_t y_topleft_height, 
+                                                    uint16_t x_bottomright_width, 
+                                                    uint16_t y_bottomright_height, 
+                                                    YACSGL_pixel_t pixel, 
+                                                    uint16_t step,
+                                                    uint16_t step_corrector)
+{
+    uint16_t temp_x = x_topleft_width;
+    uint16_t temp_y = y_topleft_height;
+
+    do{
+        /* Travel horizontally before stepping down */
+        for (uint16_t i = 0; i < step; i++)
+        {
+            YACSGL_set_pixel(frame, temp_x,  temp_y, pixel);
+            temp_x++;
+        }
+        temp_y++;
+    }
+    while(temp_x < x_bottomright_width && temp_y <= y_bottomright_height);
+
+    return;
+}
+
+static inline void YACSGL_rect_line_heigth_width (YACSGL_frame_t* frame, 
+                                                    uint16_t x_topleft_width, 
+                                                    uint16_t y_topleft_height, 
+                                                    uint16_t x_bottomright_width, 
+                                                    uint16_t y_bottomright_height, 
+                                                    YACSGL_pixel_t pixel, 
+                                                    uint16_t step,
+                                                    uint16_t step_corrector)
+{
+    uint16_t temp_x = x_topleft_width;
+    uint16_t temp_y = y_topleft_height;
+
+    do{
+        /* Travel vertically before stepping to the right */
+        for (uint16_t i = 0; i < step; i++)
+        {
+            YACSGL_set_pixel(frame, temp_x,  temp_y, pixel);
+            temp_y++;
+        }
+        temp_x++;
+    }
+    while(temp_x <= x_bottomright_width && temp_y < y_bottomright_height);
+    
+    return;
+}
 
 
 /**\} */
