@@ -70,7 +70,7 @@ static inline void YACSGL_set_pixel(YACSGL_frame_t* frame,
                         uint16_t y_height, 
                         YACSGL_pixel_t pixel)
 {
-    if (x_width > frame->frame_x_width  || y_height > frame->frame_y_heigth)
+    if (x_width >= frame->frame_x_width  || y_height >= frame->frame_y_heigth)
     {
         return;
     }
@@ -135,15 +135,15 @@ void YACSGL_rect_fill(YACSGL_frame_t* frame,
     /* Complete the missing area of the rectangle with vertical lines */
     for(uint16_t i = 0; i < x_remaining_before; i++)
     {
-         YACSGL_line(frame, x_topleft_width + i, y_topleft_height, x_topleft_width + i, y_bottomright_height, pixel);
+         //YACSGL_line(frame, x_topleft_width + i, y_topleft_height, x_topleft_width + i, y_bottomright_height, pixel);
     }
     for(uint16_t i = 0; i < x_remaining_after; i++)
     {
-         YACSGL_line(frame, 
-                        x_topleft_width + x_remaining_before + (x_align_end - x_align_start) * 8 + i, 
-                        y_topleft_height, 
-                        x_topleft_width + x_remaining_before + (x_align_end - x_align_start) * 8 + i,
-                        y_bottomright_height, pixel);
+        // YACSGL_line(frame, 
+        //                 x_topleft_width + x_remaining_before + (x_align_end - x_align_start) * 8 + i, 
+        //                 y_topleft_height, 
+        //                 x_topleft_width + x_remaining_before + (x_align_end - x_align_start) * 8 + i,
+        //                 y_bottomright_height, pixel);
     }
 
     return;
@@ -179,11 +179,12 @@ void YACSGL_line(YACSGL_frame_t* frame,
                         uint16_t y_bottomright_height, 
                         YACSGL_pixel_t pixel)
 {
-    int32_t delta_x = x_bottomright_width - x_topleft_width;
-    int32_t delta_y = y_bottomright_height - y_topleft_height;
+    int32_t delta_x = x_bottomright_width - x_topleft_width + 1;
+    int32_t delta_y = y_bottomright_height - y_topleft_height + 1;
 
     uint16_t step = 0;
     uint16_t step_corrector = 0;
+    uint16_t modulo = 0;
 
     if(delta_x < delta_y)
     {
@@ -196,8 +197,16 @@ void YACSGL_line(YACSGL_frame_t* frame,
         else        
         {
             
-            step = delta_y / delta_x;            
-            step_corrector = delta_y % delta_x;
+            step = delta_y / delta_x;       
+            modulo = delta_y % delta_x;
+            if(modulo == 0)
+            {
+                step_corrector = 0;
+            }
+            else
+            {
+                step_corrector = delta_y / modulo;   
+            }
         }
         
         YACSGL_rect_line_heigth_width(frame, 
@@ -221,7 +230,15 @@ void YACSGL_line(YACSGL_frame_t* frame,
         else       
         {            
             step = delta_x / delta_y;
-            step_corrector = delta_x % delta_y;
+            modulo = delta_x % delta_y;
+            if(modulo == 0)
+            {
+                step_corrector = 0;
+            }
+            else
+            {
+                step_corrector = delta_x / modulo;
+            }
         }        
         
         YACSGL_rect_line_width_height(frame, 
@@ -272,13 +289,22 @@ static inline void YACSGL_rect_line_width_height (YACSGL_frame_t* frame,
     uint16_t temp_x = x_topleft_width;
     uint16_t temp_y = y_topleft_height;
 
+    uint16_t current_step = 1;
+
     do{
         /* Travel horizontally before stepping down */
         for (uint16_t i = 0; i < step; i++)
         {
             YACSGL_set_pixel(frame, temp_x,  temp_y, pixel);
             temp_x++;
-        }
+            current_step++;
+            if(step_corrector != 0 && current_step >= step_corrector)
+            {
+                current_step = 1;
+                YACSGL_set_pixel(frame, temp_x,  temp_y, pixel);
+                temp_x++;
+            }        
+        }        
         temp_y++;
     }
     while(temp_x < x_bottomright_width && temp_y <= y_bottomright_height);
@@ -298,12 +324,21 @@ static inline void YACSGL_rect_line_heigth_width (YACSGL_frame_t* frame,
     uint16_t temp_x = x_topleft_width;
     uint16_t temp_y = y_topleft_height;
 
+    uint16_t current_step = 1;
+
     do{
         /* Travel vertically before stepping to the right */
         for (uint16_t i = 0; i < step; i++)
         {
             YACSGL_set_pixel(frame, temp_x,  temp_y, pixel);
             temp_y++;
+            current_step++;
+            if(step_corrector != 0 && current_step >= step_corrector)
+            {
+                current_step = 1;
+                YACSGL_set_pixel(frame, temp_x,  temp_y, pixel);
+                temp_y++;
+            }    
         }
         temp_x++;
     }
