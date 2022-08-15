@@ -101,49 +101,57 @@ void YACSGL_rect_fill(YACSGL_frame_t* frame,
     /* Detect first aligned byte */
     uint16_t x_align_start = (x_topleft_width / 8);
     uint16_t x_remaining_before = (x_topleft_width % 8);
+    uint8_t unable_to_memset = 0;
+    uint16_t size_memset = 0;
     if(x_remaining_before)
     {
         x_align_start++;
     }
 
-    /* Detect last aligned byte */
+    /* Detect last aligned byte and complete */
     uint16_t x_align_end = (x_bottomright_width / 8);
     uint16_t x_remaining_after = (x_bottomright_width % 8);
     if(x_remaining_after)
     {
-        x_align_end++;
+        if(x_align_end == x_align_start)
+        {
+            /* No memset possible are there is not a complete byte to be set*/
+            unable_to_memset = 1;
+        }
+        x_align_end--;
     }
 
     /* If a memset can trully occur */
-    if(x_align_start != x_align_end)
+    if(unable_to_memset == 0)
     {
-        int32_t delta_y = y_bottomright_height - y_topleft_height; /* Compute how many line can be memset */
+        int32_t delta_y = y_bottomright_height - y_topleft_height + 1; /* Compute how many line can be memset */
         uint8_t value_to_set = 0;
         if(pixel == YACSGL_P_WHITE)
         {
             value_to_set = 0xFF;
         }
+        size_memset = x_align_end - x_align_start + 1;
 
         for(uint16_t i = 0; i < delta_y; i++)
         {
             memset(&frame->frame_buffer[x_align_start + ((i + y_topleft_height)) * (frame->frame_x_width / 8)], 
                     value_to_set, 
-                    x_align_end - x_align_start);
+                    size_memset);
         }
     }
 
     /* Complete the missing area of the rectangle with vertical lines */
-    for(uint16_t i = 0; i < x_remaining_before; i++)
+    for(uint16_t i = 0; i < (7 - x_remaining_before) ; i++)
     {
-         //YACSGL_line(frame, x_topleft_width + i, y_topleft_height, x_topleft_width + i, y_bottomright_height, pixel);
+        YACSGL_line(frame, x_topleft_width +  7 - i, y_topleft_height, x_topleft_width + 7 - i, y_bottomright_height, pixel);
     }
     for(uint16_t i = 0; i < x_remaining_after; i++)
     {
-        // YACSGL_line(frame, 
-        //                 x_topleft_width + x_remaining_before + (x_align_end - x_align_start) * 8 + i, 
-        //                 y_topleft_height, 
-        //                 x_topleft_width + x_remaining_before + (x_align_end - x_align_start) * 8 + i,
-        //                 y_bottomright_height, pixel);
+        YACSGL_line(frame, 
+                        x_topleft_width + x_remaining_before + (size_memset) * 8 + i, 
+                        y_topleft_height, 
+                        x_topleft_width + x_remaining_before + (size_memset) * 8 + i,
+                        y_bottomright_height, pixel);
     }
 
     return;
@@ -250,10 +258,7 @@ void YACSGL_line(YACSGL_frame_t* frame,
                                         step,
                                         step_corrector);
     }
-    
-    //int32_t delta_xy = delta_x - delta_y;
-
- 
+     
 
     return;
 }  
