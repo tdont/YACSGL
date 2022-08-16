@@ -118,7 +118,10 @@ void YACSGL_rect_fill(YACSGL_frame_t* frame,
             /* No memset possible are there is not a complete byte to be set*/
             unable_to_memset = 1;
         }
-        x_align_end--;
+        else
+        {            
+            x_align_end--;
+        }
     }
 
     /* If a memset can trully occur */
@@ -140,17 +143,20 @@ void YACSGL_rect_fill(YACSGL_frame_t* frame,
         }
     }
 
+    // TODO handle the case were no meset occured !
     /* Complete the missing area of the rectangle with vertical lines */
-    for(uint16_t i = 0; i < (7 - x_remaining_before) ; i++)
+    uint16_t start_memset_x = x_align_start *8;
+    for(uint16_t i = 0; i < start_memset_x - x_topleft_width; i++)
     {
-        YACSGL_line(frame, x_topleft_width +  7 - i, y_topleft_height, x_topleft_width + 7 - i, y_bottomright_height, pixel);
+        YACSGL_line(frame, x_topleft_width +  i, y_topleft_height, x_topleft_width + i, y_bottomright_height, pixel);
     }
-    for(uint16_t i = 0; i < x_remaining_after; i++)
+    uint16_t x_end_memset = x_align_end * 8 + 8;
+    for(uint16_t i = 0; i < x_bottomright_width - x_end_memset; i++)
     {
         YACSGL_line(frame, 
-                        x_topleft_width + x_remaining_before + (size_memset) * 8 + i, 
+                        x_end_memset + i, 
                         y_topleft_height, 
-                        x_topleft_width + x_remaining_before + (size_memset) * 8 + i,
+                        x_end_memset + i,
                         y_bottomright_height, pixel);
     }
 
