@@ -141,24 +141,30 @@ void YACSGL_rect_fill(YACSGL_frame_t* frame,
                     value_to_set, 
                     size_memset);
         }
-    }
 
-    // TODO handle the case were no meset occured !
-    /* Complete the missing area of the rectangle with vertical lines */
-    uint16_t start_memset_x = x_align_start *8;
-    for(uint16_t i = 0; i < start_memset_x - x_topleft_width; i++)
-    {
-        YACSGL_line(frame, x_topleft_width +  i, y_topleft_height, x_topleft_width + i, y_bottomright_height, pixel);
+		/* Complete the missing area of the rectangle with vertical lines */
+		uint16_t start_memset_x = x_align_start * 8;
+		for (uint16_t i = 0; i < start_memset_x - x_topleft_width; i++)
+		{
+			YACSGL_line(frame, x_topleft_width + i, y_topleft_height, x_topleft_width + i, y_bottomright_height, pixel);
+		}
+		uint16_t x_end_memset = x_align_end * 8 + 8;
+		for (uint16_t i = 0; i <= x_bottomright_width - x_end_memset; i++)
+		{
+			YACSGL_line(frame,
+				x_end_memset + i,
+				y_topleft_height,
+				x_end_memset + i,
+				y_bottomright_height, pixel);
+		}
     }
-    uint16_t x_end_memset = x_align_end * 8 + 8;
-    for(uint16_t i = 0; i < x_bottomright_width - x_end_memset; i++)
-    {
-        YACSGL_line(frame, 
-                        x_end_memset + i, 
-                        y_topleft_height, 
-                        x_end_memset + i,
-                        y_bottomright_height, pixel);
-    }
+	else
+	{
+		for (uint16_t i = 0; i <= x_bottomright_width - x_topleft_width; i++)
+		{
+			YACSGL_line(frame, x_topleft_width + i, y_topleft_height, x_topleft_width + i, y_bottomright_height, pixel);
+		}
+	}
 
     return;
 }
