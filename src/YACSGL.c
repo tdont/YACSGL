@@ -41,28 +41,21 @@
 /******************** MACROS DEFINITION **************************************/
 
 /******************** TYPE DEFINITION ****************************************/
+typedef enum
+{
+    YACSGL_CIRCLE_LINE = 0,
+    YACSGL_CIRCLE_FILL
+}YACSGL_circle_type_e;
 
 /******************** GLOBAL VARIABLES OF MODULE *****************************/
 
 /******************** LOCAL FUNCTION PROTOTYPE *******************************/
-static inline void YACSGL_rect_line_width_height (YACSGL_frame_t* frame, 
-                                                    uint16_t x_topleft_width, 
-                                                    uint16_t y_topleft_height, 
-                                                    uint16_t x_bottomright_width, 
-                                                    uint16_t y_bottomright_height, 
-                                                    YACSGL_pixel_t pixel, 
-                                                    uint16_t step,
-                                                    uint16_t step_corrector);
-
-                                                    
-static inline void YACSGL_rect_line_heigth_width (YACSGL_frame_t* frame, 
-                                                    uint16_t x_topleft_width, 
-                                                    uint16_t y_topleft_height, 
-                                                    uint16_t x_bottomright_width, 
-                                                    uint16_t y_bottomright_height, 
-                                                    YACSGL_pixel_t pixel, 
-                                                    uint16_t step,
-                                                    uint16_t step_corrector);
+static void YACSGL_circle(YACSGL_frame_t* frame, 
+                        uint16_t x_u, 
+                        uint16_t y_u, 
+                        uint16_t radius_u, 
+                        YACSGL_pixel_t pixel,
+                        YACSGL_circle_type_e type);
 
 /******************** API FUNCTIONS ******************************************/
 static inline void YACSGL_set_pixel(YACSGL_frame_t* frame, 
@@ -187,183 +180,124 @@ void YACSGL_rect_line(YACSGL_frame_t* frame,
     /* Rigth vertical line */
     YACSGL_line(frame, x_bottomright_width, y_topleft_height, x_bottomright_width, y_bottomright_height, pixel);
 
-
     return;
 }   
 
-
+/** \brief use of Breseham's algorithm */
 void YACSGL_line(YACSGL_frame_t* frame, 
-                        uint16_t x_topleft_width, 
-                        uint16_t y_topleft_height, 
-                        uint16_t x_bottomright_width, 
-                        uint16_t y_bottomright_height, 
+                        uint16_t x0, 
+                        uint16_t y0, 
+                        uint16_t x1, 
+                        uint16_t y1, 
                         YACSGL_pixel_t pixel)
 {
-    int32_t delta_x = x_bottomright_width - x_topleft_width + 1;
-    int32_t delta_y = y_bottomright_height - y_topleft_height + 1;
+    int32_t dx =  YACSGL_abs(x1-x0);
+    int32_t sx = (x0<x1 ? 1 : -1);
 
-    uint16_t step = 0;
-    uint16_t step_corrector = 0;
-    uint16_t modulo = 0;
+    int32_t dy = -YACSGL_abs(y1-y0);
+    int32_t sy = (y0<y1 ? 1 : -1); 
 
-    if(delta_x < delta_y)
-    {
-        /* Detect a pure vertical line case */
-        if (delta_x == 0)
+    int32_t err = dx + dy; /* error value e_xy */
+    int32_t e2 = 0; 
+ 
+    for(;;)/* loop */
+    {  
+        YACSGL_set_pixel(frame, x0, y0, pixel);
+        /* Evaluate exit condition */
+        if (x0==x1 && y0==y1)
         {
-            step = delta_y;
-            step_corrector = 0;
-        }
-        else        
-        {
-            
-            step = delta_y / delta_x;       
-            modulo = delta_y % delta_x;
-            if(modulo == 0)
-            {
-                step_corrector = 0;
-            }
-            else
-            {
-                step_corrector = delta_y / modulo;   
-            }
-        }
-        
-        YACSGL_rect_line_heigth_width(frame, 
-                                    x_topleft_width, 
-                                    y_topleft_height, 
-                                    x_bottomright_width, 
-                                    y_bottomright_height, 
-                                    pixel, 
-                                    step,
-                                    step_corrector);
-
+            break;
+        } 
+        e2 = 2*err;
+        if (e2 >= dy) /* e_xy+e_x > 0 */
+        { 
+            err += dy; 
+            x0 += sx; 
+        } 
+        if (e2 <= dx) /* e_xy+e_y < 0 */
+        {   err += dx; 
+            y0 += sy; 
+        } 
     }
-    else
-    {
-        /* Detect a pure horizontal line case */
-        if (delta_y == 0)
-        {
-            step = delta_x;
-            step_corrector = 0;
-        }
-        else       
-        {            
-            step = delta_x / delta_y;
-            modulo = delta_x % delta_y;
-            if(modulo == 0)
-            {
-                step_corrector = 0;
-            }
-            else
-            {
-                step_corrector = delta_x / modulo;
-            }
-        }        
-        
-        YACSGL_rect_line_width_height(frame, 
-                                        x_topleft_width, 
-                                        y_topleft_height, 
-                                        x_bottomright_width, 
-                                        y_bottomright_height, 
-                                        pixel, 
-                                        step,
-                                        step_corrector);
-    }
-     
 
     return;
 }  
 
 void YACSGL_circle_fill(YACSGL_frame_t* frame, 
-                        uint16_t x_topleft_width, 
-                        uint16_t y_topleft_height, 
+                        uint16_t x, 
+                        uint16_t y, 
                         uint16_t radius, 
                         YACSGL_pixel_t pixel)
 {
+    YACSGL_circle(frame, x, y, radius, pixel, YACSGL_CIRCLE_FILL);
     return;
 }
 
+/** \brief use of Breseham's algorithm */
 void YACSGL_circle_line(YACSGL_frame_t* frame, 
-                        uint16_t x_topleft_width, 
-                        uint16_t y_topleft_height, 
+                        uint16_t x, 
+                        uint16_t y, 
                         uint16_t radius, 
-                        YACSGL_pixel_t pixel)
+                        YACSGL_pixel_t pixel)   
 {
+    YACSGL_circle(frame, x, y, radius, pixel, YACSGL_CIRCLE_LINE);
     return;
-}                                
+}
+
+int32_t YACSGL_abs(int32_t value)
+{
+    int32_t ret_val = value;
+
+    if (ret_val < 0)
+    {
+        ret_val = -ret_val;
+    }
+    
+    return ret_val;
+}
 
 /******************** LOCAL FUNCTIONS ****************************************/
-static inline void YACSGL_rect_line_width_height (YACSGL_frame_t* frame, 
-                                                    uint16_t x_topleft_width, 
-                                                    uint16_t y_topleft_height, 
-                                                    uint16_t x_bottomright_width, 
-                                                    uint16_t y_bottomright_height, 
-                                                    YACSGL_pixel_t pixel, 
-                                                    uint16_t step,
-                                                    uint16_t step_corrector)
+static void YACSGL_circle(YACSGL_frame_t* frame, 
+                        uint16_t x_u, 
+                        uint16_t y_u, 
+                        uint16_t radius_u, 
+                        YACSGL_pixel_t pixel,
+                        YACSGL_circle_type_e type)
 {
-    uint16_t temp_x = x_topleft_width;
-    uint16_t temp_y = y_topleft_height;
-
-    uint16_t current_step = 1;
-
-    do{
-        /* Travel horizontally before stepping down */
-        for (uint16_t i = 0; i < step; i++)
+    int32_t x = x_u; 
+    int32_t y = y_u; 
+    int32_t radius = radius_u;
+    int32_t x_temp = -radius;
+    int32_t y_temp = 0;
+    int32_t err = 2 - (2 * radius); /* II. Quadrant */ 
+    do 
+    {
+        if (type == YACSGL_CIRCLE_FILL)
         {
-            YACSGL_set_pixel(frame, temp_x,  temp_y, pixel);
-            temp_x++;
-            current_step++;
-            if(step_corrector != 0 && current_step >= step_corrector)
-            {
-                current_step = 1;
-                YACSGL_set_pixel(frame, temp_x,  temp_y, pixel);
-                temp_x++;
-            }        
-        }        
-        temp_y++;
-    }
-    while(temp_x < x_bottomright_width && temp_y <= y_bottomright_height);
-
-    return;
-}
-
-static inline void YACSGL_rect_line_heigth_width (YACSGL_frame_t* frame, 
-                                                    uint16_t x_topleft_width, 
-                                                    uint16_t y_topleft_height, 
-                                                    uint16_t x_bottomright_width, 
-                                                    uint16_t y_bottomright_height, 
-                                                    YACSGL_pixel_t pixel, 
-                                                    uint16_t step,
-                                                    uint16_t step_corrector)
-{
-    uint16_t temp_x = x_topleft_width;
-    uint16_t temp_y = y_topleft_height;
-
-    uint16_t current_step = 1;
-
-    do{
-        /* Travel vertically before stepping to the right */
-        for (uint16_t i = 0; i < step; i++)
-        {
-            YACSGL_set_pixel(frame, temp_x,  temp_y, pixel);
-            temp_y++;
-            current_step++;
-            if(step_corrector != 0 && current_step >= step_corrector)
-            {
-                current_step = 1;
-                YACSGL_set_pixel(frame, temp_x,  temp_y, pixel);
-                temp_y++;
-            }    
+            YACSGL_line(frame, x-x_temp, y+y_temp, x+x_temp, y+y_temp, pixel);
+            YACSGL_line(frame, x-x_temp, y-y_temp, x+x_temp, y-y_temp, pixel);
         }
-        temp_x++;
-    }
-    while(temp_x <= x_bottomright_width && temp_y < y_bottomright_height);
-    
+        else
+        {
+            YACSGL_set_pixel(frame, x-x_temp, y+y_temp, pixel); /*   I. Quadrant */
+            YACSGL_set_pixel(frame, x-y_temp, y-x_temp, pixel); /*  II. Quadrant */
+            YACSGL_set_pixel(frame, x+x_temp, y-y_temp, pixel); /* III. Quadrant */
+            YACSGL_set_pixel(frame, x+y_temp, y+x_temp, pixel); /*  IV. Quadrant */
+        }
+
+        radius = err;
+        if (radius <= y_temp) 
+        {
+            err += ++y_temp*2+1; /* e_xy+e_y < 0 */
+        }           
+        if (radius > x_temp || err > y_temp) 
+        {
+            err += ++x_temp*2+1; /* e_xy+e_x > 0 or no 2nd y-step */
+        }
+    } 
+    while (x_temp < 0);
     return;
 }
-
 
 /**\} */
 /**\} */

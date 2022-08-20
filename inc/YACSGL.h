@@ -65,13 +65,22 @@ typedef struct
  * \param frame     Frame where the paiting shall be done
  * \param x_width   Coordonate in the abscyss axe
  * \param y_height  Coordonaite in the ordonnate axe
- * \param pen       Pixel color to be applied
+ * \param pixel       Pixel color to be applied
  */
 void YACSGL_set_pixel(YACSGL_frame_t* frame, 
                         uint16_t x_width, 
                         uint16_t y_height, 
                         YACSGL_pixel_t pixel);
 
+/** \brief Draw a filled rectangle with the pixel color 
+ * 
+ * \param frame     Frame where the paiting shall be done
+ * \param x_topleft_width   Coordonate in the abscyss axe of the top left corner 
+ * \param y_topleft_height  Coordonaite in the ordonnate axe of the top left corner
+ * \param x_bottomright_width Coordonate in the abscyss axe of the bottom right corner 
+ * \param y_bottomright_height Coordonate in the ordonnate axe of the bottom right corner 
+ * \param pixel       Pixel color to be applied
+ */
 void YACSGL_rect_fill(YACSGL_frame_t* frame, 
                         uint16_t x_topleft_width, 
                         uint16_t y_topleft_height, 
@@ -79,6 +88,15 @@ void YACSGL_rect_fill(YACSGL_frame_t* frame,
                         uint16_t y_bottomright_height, 
                         YACSGL_pixel_t pixel);
 
+/** \brief Draw a the external lines of a  rectangle and leave the inside untouched  
+ * 
+ * \param frame     Frame where the paiting shall be done
+ * \param x_topleft_width   Coordonate in the abscyss axe of the top left corner 
+ * \param y_topleft_height  Coordonaite in the ordonnate axe of the top left corner
+ * \param x_bottomright_width Coordonate in the abscyss axe of the bottom right corner 
+ * \param y_bottomright_height Coordonate in the ordonnate axe of the bottom right corner 
+ * \param pixel       Pixel color to be applied
+ */
 void YACSGL_rect_line(YACSGL_frame_t* frame, 
                         uint16_t x_topleft_width, 
                         uint16_t y_topleft_height, 
@@ -86,24 +104,57 @@ void YACSGL_rect_line(YACSGL_frame_t* frame,
                         uint16_t y_bottomright_height, 
                         YACSGL_pixel_t pixel);   
 
+/** \brief Draw a line between two dot 
+ * 
+ * \param frame     Frame where the paiting shall be done
+ * \param x0        Coordonate in the abscyss axe of the first dot 
+ * \param y0        Coordonaite in the ordonnate axe of the first dot
+ * \param x1        Coordonate in the abscyss axe of the second dot 
+ * \param y1        Coordonate in the ordonnate axe of the second dot 
+ * \param pixel     Pixel color to be applied
+ */
 void YACSGL_line(YACSGL_frame_t* frame, 
-                        uint16_t x_topleft_width, 
-                        uint16_t y_topleft_height, 
-                        uint16_t x_bottomright_width, 
-                        uint16_t y_bottomright_height, 
+                        uint16_t x0, 
+                        uint16_t x1, 
+                        uint16_t y0, 
+                        uint16_t y1, 
                         YACSGL_pixel_t pixel);      
 
+/** \brief Draw a filled circle (or disc) with the pixel color 
+ * 
+ * \param frame     Frame where the paiting shall be done
+ * \param x         Coordonate in the abscyss axe of center
+ * \param y         Coordonaite in the ordonnate axe of the center
+ * \param radius    Radius in pixel 
+ * \param pixel     Pixel color to be applied
+ */
 void YACSGL_circle_fill(YACSGL_frame_t* frame, 
-                        uint16_t x_topleft_width, 
-                        uint16_t y_topleft_height, 
+                        uint16_t x, 
+                        uint16_t y, 
                         uint16_t radius, 
                         YACSGL_pixel_t pixel);   
 
+/** \brief Draw a circle with the pixel color and leave the inside untouched  
+ * 
+ * \param frame     Frame where the paiting shall be done
+ * \param x         Coordonate in the abscyss axe of center
+ * \param y         Coordonaite in the ordonnate axe of the center
+ * \param radius    Radius in pixel 
+ * \param pixel     Pixel color to be applied
+ */
 void YACSGL_circle_line(YACSGL_frame_t* frame, 
-                        uint16_t x_topleft_width, 
-                        uint16_t y_topleft_height, 
+                        uint16_t x, 
+                        uint16_t y, 
                         uint16_t radius, 
-                        YACSGL_pixel_t pixel);                                  
+                        YACSGL_pixel_t pixel); 
+
+/** \brief Compute the absolute value of a given value (avoid stdlib)
+ * 
+ * \param value     Value we want to get absolute value 
+ * 
+ * \return          The absolute value
+ */
+int32_t YACSGL_abs(int32_t value);
 
 #ifdef __cplusplus
 }
