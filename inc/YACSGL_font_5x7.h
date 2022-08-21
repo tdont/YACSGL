@@ -24,15 +24,15 @@
  * \{ */
 
 /**
- * \file YAGSGL_font.c
+ * \file YAGSGL_font_5x7.h
  *
  * File description
  * \author Thibaut DONTAIL
- * \date 21 Aug. 2022
+ * \date 20 Aug. 2022
  */
 
 /**
- * \cond INTERNAL_DOC
+ * \cond EXTERNAL_DOC
  *
  * \mainpage External documentation of module
  *
@@ -45,6 +45,15 @@
  * \endcond
  */
 
+/* Prevent multiple inclusions */
+#ifndef INC_YACSGL_FONT_5X7_H_
+#define INC_YACSGL_FONT_5X7_H_
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+
 /******************** INCLUDES ***********************************************/
 #include "YACSGL_font.h"
 
@@ -55,23 +64,15 @@
 /******************** TYPE DEFINITION ****************************************/
 
 /******************** GLOBAL VARIABLES OF MODULE *****************************/
+extern const YACSGL_font_t YACSGL_font_5x7;
 
-/******************** LOCAL FUNCTION PROTOTYPE *******************************/
+/******************** API FUNCTION PROTOTYPE *********************************/
 
-/******************** API FUNCTIONS ******************************************/
-void YACSGL_font_txt_disp(YACSGL_frame_t* frame, 
-                        uint16_t x_width, 
-                        uint16_t y_height, 
-                        YACSGL_pixel_t pixel,
-                        const YACSGL_font_t* const font,
-                        const char* const text,
-                        YACSGL_txt_newline_mode_e newline_mode)
-{
-    return;
+#ifdef __cplusplus
 }
+#endif
 
-/******************** LOCAL FUNCTIONS ****************************************/
-
+#endif /* INC_YACSGL_FONT_5X7_H_ */
 
 /**\} */
 /**\} */

@@ -24,7 +24,7 @@
  * \{ */
 
 /**
- * \file YAGSGL_font.c
+ * \file YAGSGL_font_5x7.c
  *
  * File description
  * \author Thibaut DONTAIL
@@ -47,6 +47,7 @@
 
 /******************** INCLUDES ***********************************************/
 #include "YACSGL_font.h"
+#include <stdint.h>
 
 /******************** CONSTANTS OF MODULE ************************************/
 
@@ -55,20 +56,20 @@
 /******************** TYPE DEFINITION ****************************************/
 
 /******************** GLOBAL VARIABLES OF MODULE *****************************/
+uint8_t table[] = { 10, 20 }; /* TODO dummy table to be filled ... by hand for now :( */
+
+YACSGL_font_t YACSGL_font_5x7 = {
+                                    7, /* Height */
+                                    5, /* Width */
+                                    1, /* One byte per line */
+                                    0x21, /* First character of the table */
+                                    0x7E, /* Last character of the table */
+                                    table /* Font table */
+};
 
 /******************** LOCAL FUNCTION PROTOTYPE *******************************/
 
 /******************** API FUNCTIONS ******************************************/
-void YACSGL_font_txt_disp(YACSGL_frame_t* frame, 
-                        uint16_t x_width, 
-                        uint16_t y_height, 
-                        YACSGL_pixel_t pixel,
-                        const YACSGL_font_t* const font,
-                        const char* const text,
-                        YACSGL_txt_newline_mode_e newline_mode)
-{
-    return;
-}
 
 /******************** LOCAL FUNCTIONS ****************************************/
 

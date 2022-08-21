@@ -57,12 +57,20 @@ extern "C" {
 /******************** INCLUDES ***********************************************/
 #include <stdbool.h>
 #include <stdint.h>
+#include "YACSGL.h"
+#include "YACSGL_pixel.h"
 
 /******************** CONSTANTS OF MODULE ************************************/
 
 /******************** MACROS DEFINITION **************************************/
 
 /******************** TYPE DEFINITION ****************************************/
+typedef enum
+{
+    YACSGL_NEWLINE_DISABLED = 0,
+    YACSGL_NEWLINE_ENABLED
+}YACSGL_txt_newline_mode_e;
+
 typedef struct
 {
     uint8_t height;
@@ -76,6 +84,26 @@ typedef struct
 /******************** GLOBAL VARIABLES OF MODULE *****************************/
 
 /******************** API FUNCTION PROTOTYPE *********************************/
+/** \brief Display a text at the coordonates (only if it stays in the frame) 
+ *  Can go to the line is indicated as such and a newline character (\r or \n) is present) 
+ * 
+ * \param frame         Frame where the paiting shall be done
+ * \param x_width       Coordonate in the abscyss axe
+ * \param y_height      Coordonaite in the ordonnate axe
+ * \param pixel         Pixel color to be applied
+ * \param font          Font that will be applied to display the text
+ * \param text          Text to be displayed on the frame
+ * \param newline_mode  Indicate if newline shall be detected and accounted for it 
+ *                      If newline mode is disabled, a newline is considered as an end of string
+*/
+void YACSGL_font_txt_disp(YACSGL_frame_t* frame, 
+                        uint16_t x_width, 
+                        uint16_t y_height, 
+                        YACSGL_pixel_t pixel,
+                        const YACSGL_font_t* const font,
+                        const char* const text,
+                        YACSGL_txt_newline_mode_e newline_mode);
+
 #ifdef __cplusplus
 }
 #endif
