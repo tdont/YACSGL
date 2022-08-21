@@ -24,15 +24,15 @@
  * \{ */
 
 /**
- * \file YAGSGL_pixel.c
+ * \file YAGSGL_font.h
  *
  * File description
  * \author Thibaut DONTAIL
- * \date 12 Aug. 2022
+ * \date 20 Aug. 2022
  */
 
 /**
- * \cond INTERNAL_DOC
+ * \cond EXTERNAL_DOC
  *
  * \mainpage External documentation of module
  *
@@ -45,23 +45,42 @@
  * \endcond
  */
 
+/* Prevent multiple inclusions */
+#ifndef INC_YACSGL_FONT_H_
+#define INC_YACSGL_FONT_H_
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+
 /******************** INCLUDES ***********************************************/
-#include "YACSGL_pixel.h"
+#include <stdbool.h>
+#include <stdint.h>
 
 /******************** CONSTANTS OF MODULE ************************************/
 
 /******************** MACROS DEFINITION **************************************/
 
 /******************** TYPE DEFINITION ****************************************/
+typedef struct
+{
+    uint8_t height;
+    uint8_t width;
+    uint8_t nb_byte_line;
+    char    first_char;
+    char    last_char;
+    uint8_t* table;
+}YACSGL_font_t;
 
 /******************** GLOBAL VARIABLES OF MODULE *****************************/
 
-/******************** LOCAL FUNCTION PROTOTYPE *******************************/
+/******************** API FUNCTION PROTOTYPE *********************************/
+#ifdef __cplusplus
+}
+#endif
 
-/******************** API FUNCTIONS ******************************************/
-
-/******************** LOCAL FUNCTIONS ****************************************/
-
+#endif /* INC_YACSGL_FONT_H_ */
 
 /**\} */
 /**\} */
