@@ -72,16 +72,22 @@ static void YACSGL_circle(YACSGL_frame_t* frame,
                         YACSGL_pixel_t pixel,
                         YACSGL_circle_type_e type);
 
+static void YACSGL_line_no_check(YACSGL_frame_t* frame, 
+                        uint16_t x0, 
+                        uint16_t y0, 
+                        uint16_t x1, 
+                        uint16_t y1, 
+                        YACSGL_pixel_t pixel);
 /******************** API FUNCTIONS ******************************************/
 static inline void YACSGL_set_pixel(YACSGL_frame_t* frame, 
                         uint16_t x_width, 
                         uint16_t y_height, 
                         YACSGL_pixel_t pixel)
 {
-    if (x_width >= frame->frame_x_width  || y_height >= frame->frame_y_heigth)
-    {
-        return;
-    }
+    // if (x_width >= frame->frame_x_width  || y_height >= frame->frame_y_heigth)
+    // {
+    //     return;
+    // }
 
     /* Retrieve the byte where the pixel to be changed lies */
     uint8_t tmp_byte = *(frame->frame_buffer + x_width / 8 + (y_height * frame->frame_x_width / 8));
@@ -184,16 +190,53 @@ void YACSGL_rect_line(YACSGL_frame_t* frame,
                         uint16_t y_bottomright_height, 
                         YACSGL_pixel_t pixel)
 {
+    uint16_t x_final = x_bottomright_width;
+    uint16_t y_final = y_bottomright_height;
+    uint8_t overshoot_width = 0;
+    uint8_t overshoot_heigth = 0;
+
+    if (frame == 0)
+    {
+        return;
+    }
+    if (x_topleft_width >= frame->frame_x_width)
+    {
+        return;
+    }
+    if (y_topleft_height >= frame->frame_y_heigth)
+    {
+        return;
+    }
+
+    if (x_final > frame->frame_x_width)
+    {
+        overshoot_width = 1;
+        x_final = frame->frame_x_width -1;
+    }
+    if (y_final > frame->frame_y_heigth)
+    {
+        overshoot_heigth = 1;
+        y_final = frame->frame_y_heigth -1;
+    }
+    
     /* Draw the four line of the rectangle */
     /* Top horizontal line */
-    YACSGL_line(frame, x_topleft_width, y_topleft_height, x_bottomright_width, y_topleft_height, pixel);
-    /* Bottom horizontal line */
-    YACSGL_line(frame, x_topleft_width, y_bottomright_height, x_bottomright_width, y_bottomright_height, pixel);
+    YACSGL_line(frame, x_topleft_width, y_topleft_height, x_final, y_topleft_height, pixel);
+
+    if(overshoot_heigth == 0)
+    {
+        /* Bottom horizontal line */
+        YACSGL_line(frame, x_topleft_width, y_final, x_final, y_final, pixel);
+    }
 
     /* Left vertical line */
-    YACSGL_line(frame, x_topleft_width, y_topleft_height, x_topleft_width, y_bottomright_height, pixel);
-    /* Rigth vertical line */
-    YACSGL_line(frame, x_bottomright_width, y_topleft_height, x_bottomright_width, y_bottomright_height, pixel);
+    YACSGL_line(frame, x_topleft_width, y_topleft_height, x_topleft_width, y_final, pixel);
+
+    if (overshoot_width == 0)
+    {
+        /* Rigth vertical line */
+        YACSGL_line(frame, x_final, y_topleft_height, x_final, y_final, pixel);
+    }
 
     return;
 }   
@@ -206,36 +249,20 @@ void YACSGL_line(YACSGL_frame_t* frame,
                         uint16_t y1, 
                         YACSGL_pixel_t pixel)
 {
-    int32_t dx =  YACSGL_abs(x1-x0);
-    int32_t sx = (x0<x1 ? 1 : -1);
-
-    int32_t dy = -YACSGL_abs(y1-y0);
-    int32_t sy = (y0<y1 ? 1 : -1); 
-
-    int32_t err = dx + dy; /* error value e_xy */
-    int32_t e2 = 0; 
- 
-    for(;;)/* loop */
-    {  
-        YACSGL_set_pixel(frame, x0, y0, pixel);
-        /* Evaluate exit condition */
-        if (x0==x1 && y0==y1)
-        {
-            break;
-        } 
-        e2 = 2*err;
-        if (e2 >= dy) /* e_xy+e_x > 0 */
-        { 
-            err += dy; 
-            x0 += sx; 
-        } 
-        if (e2 <= dx) /* e_xy+e_y < 0 */
-        {   err += dx; 
-            y0 += sy; 
-        } 
+    if (frame == 0)
+    {
+        return;
     }
-
-    return;
+    if ((x0 > frame->frame_x_width) || (x1 > frame->frame_x_width))
+    {
+        return;
+    }
+    if ((y0 > frame->frame_y_heigth) || (y1 > frame->frame_y_heigth))
+    {
+        return;
+    }
+ 
+    YACSGL_line_no_check(frame, x0, y0, x1, y1, pixel);
 }  
 
 void YACSGL_circle_fill(YACSGL_frame_t* frame, 
@@ -311,6 +338,45 @@ static void YACSGL_circle(YACSGL_frame_t* frame,
         }
     } 
     while (x_temp < 0);
+    return;
+}
+
+static void YACSGL_line_no_check(YACSGL_frame_t* frame, 
+                        uint16_t x0, 
+                        uint16_t y0, 
+                        uint16_t x1, 
+                        uint16_t y1, 
+                        YACSGL_pixel_t pixel)
+{
+    int32_t dx =  YACSGL_abs(x1-x0);
+    int32_t sx = (x0<x1 ? 1 : -1);
+
+    int32_t dy = -YACSGL_abs(y1-y0);
+    int32_t sy = (y0<y1 ? 1 : -1); 
+
+    int32_t err = dx + dy; /* error value e_xy */
+    int32_t e2 = 0; 
+ 
+    for(;;)/* loop */
+    {  
+        YACSGL_set_pixel(frame, x0, y0, pixel);
+        /* Evaluate exit condition */
+        if (x0==x1 && y0==y1)
+        {
+            break;
+        } 
+        e2 = 2*err;
+        if (e2 >= dy) /* e_xy+e_x > 0 */
+        { 
+            err += dy; 
+            x0 += sx; 
+        } 
+        if (e2 <= dx) /* e_xy+e_y < 0 */
+        {   err += dx; 
+            y0 += sy; 
+        } 
+    }
+
     return;
 }
 
