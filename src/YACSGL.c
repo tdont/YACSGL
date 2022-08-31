@@ -111,6 +111,38 @@ void YACSGL_rect_fill(YACSGL_frame_t* frame,
                         uint16_t y_bottomright_height, 
                         YACSGL_pixel_t pixel)
 {
+    /* Check parameters */
+    if (frame == 0)
+    {
+        return;
+    }
+    if (x_topleft_width >= frame->frame_x_width)
+    {
+        return;
+    }
+    if (y_topleft_height >= frame->frame_y_heigth)
+    {
+        return;
+    }
+    if  (   (x_topleft_width > x_bottomright_width)
+         || (y_topleft_height > y_bottomright_height)
+        )
+    {
+        return;
+    }
+
+    uint16_t x_final = x_bottomright_width;
+    uint16_t y_final = y_bottomright_height;
+
+    if (x_final >= frame->frame_x_width)
+    {
+        x_final = frame->frame_x_width -1;
+    }
+    if (y_final >= frame->frame_y_heigth)
+    {
+        y_final = frame->frame_y_heigth -1;
+    }
+
     /* Try to be clever and optimize with memset for aligned area */
     /* Detect first aligned byte */
     uint16_t x_align_start = (x_topleft_width / 8);
@@ -123,8 +155,8 @@ void YACSGL_rect_fill(YACSGL_frame_t* frame,
     }
 
     /* Detect last aligned byte and complete */
-    uint16_t x_align_end = (x_bottomright_width / 8);
-    uint16_t x_remaining_after = (x_bottomright_width % 8);
+    uint16_t x_align_end = (x_final / 8);
+    uint16_t x_remaining_after = (x_final % 8);
     if(x_remaining_after)
     {
         if(x_align_end == x_align_start)
@@ -141,7 +173,7 @@ void YACSGL_rect_fill(YACSGL_frame_t* frame,
     /* If a memset can trully occur */
     if(unable_to_memset == 0)
     {
-        int32_t delta_y = y_bottomright_height - y_topleft_height + 1; /* Compute how many line can be memset */
+        int32_t delta_y = y_final - y_topleft_height + 1; /* Compute how many line can be memset */
         uint8_t value_to_set = 0;
         if(pixel == YACSGL_P_WHITE)
         {
@@ -160,23 +192,33 @@ void YACSGL_rect_fill(YACSGL_frame_t* frame,
 		uint16_t start_memset_x = x_align_start * 8;
 		for (uint16_t i = 0; i < start_memset_x - x_topleft_width; i++)
 		{
-			YACSGL_line(frame, x_topleft_width + i, y_topleft_height, x_topleft_width + i, y_bottomright_height, pixel);
+			YACSGL_line_no_check(frame, 
+                                    x_topleft_width + i, 
+                                    y_topleft_height, 
+                                    x_topleft_width + i, 
+                                    y_final, 
+                                    pixel);
 		}
 		uint16_t x_end_memset = x_align_end * 8 + 8;
-		for (uint16_t i = 0; i <= x_bottomright_width - x_end_memset; i++)
+		for (uint16_t i = 0; i <= x_final - x_end_memset; i++)
 		{
-			YACSGL_line(frame,
-				x_end_memset + i,
-				y_topleft_height,
-				x_end_memset + i,
-				y_bottomright_height, pixel);
+			YACSGL_line_no_check(frame,
+                                    x_end_memset + i,
+                                    y_topleft_height,
+                                    x_end_memset + i,
+                                    y_final, pixel);
 		}
     }
 	else /* No memset was possible, draw only vertical lines */
 	{
-		for (uint16_t i = 0; i <= x_bottomright_width - x_topleft_width; i++)
+		for (uint16_t i = 0; i <= x_final - x_topleft_width; i++)
 		{
-			YACSGL_line(frame, x_topleft_width + i, y_topleft_height, x_topleft_width + i, y_bottomright_height, pixel);
+			YACSGL_line_no_check(frame, 
+                                    x_topleft_width + i, 
+                                    y_topleft_height, 
+                                    x_topleft_width + i, 
+                                    y_final, 
+                                    pixel);
 		}
 	}
 
@@ -190,11 +232,7 @@ void YACSGL_rect_line(YACSGL_frame_t* frame,
                         uint16_t y_bottomright_height, 
                         YACSGL_pixel_t pixel)
 {
-    uint16_t x_final = x_bottomright_width;
-    uint16_t y_final = y_bottomright_height;
-    uint8_t overshoot_width = 0;
-    uint8_t overshoot_heigth = 0;
-
+    /* Check parameters */
     if (frame == 0)
     {
         return;
@@ -207,13 +245,24 @@ void YACSGL_rect_line(YACSGL_frame_t* frame,
     {
         return;
     }
+    if  (   (x_topleft_width > x_bottomright_width)
+         || (y_topleft_height > y_bottomright_height)
+        )
+    {
+        return;
+    }
 
-    if (x_final > frame->frame_x_width)
+    uint16_t x_final = x_bottomright_width;
+    uint16_t y_final = y_bottomright_height;
+    uint8_t overshoot_width = 0;
+    uint8_t overshoot_heigth = 0;
+
+    if (x_final >= frame->frame_x_width)
     {
         overshoot_width = 1;
         x_final = frame->frame_x_width -1;
     }
-    if (y_final > frame->frame_y_heigth)
+    if (y_final >= frame->frame_y_heigth)
     {
         overshoot_heigth = 1;
         y_final = frame->frame_y_heigth -1;
@@ -221,21 +270,21 @@ void YACSGL_rect_line(YACSGL_frame_t* frame,
     
     /* Draw the four line of the rectangle */
     /* Top horizontal line */
-    YACSGL_line(frame, x_topleft_width, y_topleft_height, x_final, y_topleft_height, pixel);
+    YACSGL_line_no_check(frame, x_topleft_width, y_topleft_height, x_final, y_topleft_height, pixel);
 
     if(overshoot_heigth == 0)
     {
         /* Bottom horizontal line */
-        YACSGL_line(frame, x_topleft_width, y_final, x_final, y_final, pixel);
+        YACSGL_line_no_check(frame, x_topleft_width, y_final, x_final, y_final, pixel);
     }
 
     /* Left vertical line */
-    YACSGL_line(frame, x_topleft_width, y_topleft_height, x_topleft_width, y_final, pixel);
+    YACSGL_line_no_check(frame, x_topleft_width, y_topleft_height, x_topleft_width, y_final, pixel);
 
     if (overshoot_width == 0)
     {
         /* Rigth vertical line */
-        YACSGL_line(frame, x_final, y_topleft_height, x_final, y_final, pixel);
+        YACSGL_line_no_check(frame, x_final, y_topleft_height, x_final, y_final, pixel);
     }
 
     return;
