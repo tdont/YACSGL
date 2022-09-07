@@ -290,7 +290,6 @@ void YACSGL_rect_line(YACSGL_frame_t* frame,
     return;
 }   
 
-/** \brief use of Breseham's algorithm */
 void YACSGL_line(YACSGL_frame_t* frame, 
                         uint16_t x0, 
                         uint16_t y0, 
@@ -365,8 +364,27 @@ static void YACSGL_circle(YACSGL_frame_t* frame,
     {
         if (type == YACSGL_CIRCLE_FILL)
         {
-            YACSGL_line(frame, x-x_temp, y+y_temp, x+x_temp, y+y_temp, pixel);
-            YACSGL_line(frame, x-x_temp, y-y_temp, x+x_temp, y-y_temp, pixel);
+            int32_t x_right = x-x_temp;
+            int32_t x_left = x+x_temp;
+
+            /* Avoid drawing outside of the frame */
+            if (x_left < 0)
+            {
+                x_left = 0;
+            }
+            if (x_right >= frame->frame_x_width)
+            {
+                x_right = frame->frame_x_width - 1;
+            }
+            
+            if (y+y_temp < frame->frame_y_heigth)
+            {                
+                YACSGL_line(frame, x_left, y+y_temp, x_right, y+y_temp, pixel);
+            }
+            if (y-y_temp >= 0)
+            {                
+                YACSGL_line(frame, x_left, y-y_temp, x_right, y-y_temp, pixel);
+            }
         }
         else
         {
@@ -390,6 +408,7 @@ static void YACSGL_circle(YACSGL_frame_t* frame,
     return;
 }
 
+/** \brief use of Breseham's algorithm */
 static void YACSGL_line_no_check(YACSGL_frame_t* frame, 
                         uint16_t x0, 
                         uint16_t y0, 
