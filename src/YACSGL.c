@@ -388,10 +388,22 @@ static void YACSGL_circle(YACSGL_frame_t* frame,
         }
         else
         {
-            YACSGL_set_pixel(frame, x-x_temp, y+y_temp, pixel); /*   I. Quadrant */
-            YACSGL_set_pixel(frame, x-y_temp, y-x_temp, pixel); /*  II. Quadrant */
-            YACSGL_set_pixel(frame, x+x_temp, y-y_temp, pixel); /* III. Quadrant */
-            YACSGL_set_pixel(frame, x+y_temp, y+x_temp, pixel); /*  IV. Quadrant */
+            if ((x-x_temp < frame->frame_x_width) && (y+y_temp < frame->frame_y_heigth)) /*   I. Quadrant */
+            {
+                YACSGL_set_pixel(frame, x-x_temp, y+y_temp, pixel); 
+            }
+            if ((x-y_temp >= 0) && (y-x_temp < frame->frame_y_heigth)) /*  II. Quadrant */
+            {
+                YACSGL_set_pixel(frame, x-y_temp, y-x_temp, pixel); 
+            }
+            if ((x+x_temp >= 0) && (y-y_temp >= 0)) /* III. Quadrant */
+            {
+                YACSGL_set_pixel(frame, x+x_temp, y-y_temp, pixel); 
+            }
+            if ((x+y_temp < frame->frame_x_width) && (y+x_temp >= 0)) /*  IV. Quadrant */
+            {
+                YACSGL_set_pixel(frame, x+y_temp, y+x_temp, pixel); 
+            }
         }
 
         radius = err;
