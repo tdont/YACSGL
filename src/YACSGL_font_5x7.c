@@ -1759,6 +1759,7 @@ YACSGL_font_t YACSGL_font_5x7 = {
                                     1, /* One byte per line */
                                     0x21, /* First character of the table */
                                     0x7E, /* Last character of the table */
+									0x3F, /* Not found, aka joker character */
                                     table /* Font table */
 };
 

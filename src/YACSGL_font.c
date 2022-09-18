@@ -47,8 +47,10 @@
 
 /******************** INCLUDES ***********************************************/
 #include "YACSGL_font.h"
+#include "YACSGL.h"
 
 /******************** CONSTANTS OF MODULE ************************************/
+#define YACSGL_FONT_MISSING_CHAR    ' '
 
 /******************** MACROS DEFINITION **************************************/
 
@@ -67,6 +69,88 @@ void YACSGL_font_txt_disp(YACSGL_frame_t* frame,
                         const char* const text,
                         YACSGL_txt_newline_mode_e newline_mode)
 {
+    /* Check parameters */
+    if (frame == NULL)
+    {
+        return;
+    }
+    if (font == NULL)
+    {
+        return;
+    }
+    if (text == NULL)
+    {
+        return;
+    }
+    if (    (x_width + font->width >= frame->frame_x_width)
+        ||  (y_height + font->height >= frame->frame_y_heigth)
+       )
+    {
+        return;
+    }
+    if(text[0] == 0)
+    {
+        return;
+    }
+    if(    (newline_mode == YACSGL_NEWLINE_DISABLED) 
+        && ((text[0] == '\r') || (text[0] == '\n'))
+      )
+    {
+        return;
+    }
+
+    uint32_t current_line = 0;
+    uint16_t x_offset = 0;
+    uint16_t y_offset = 0;
+    uint8_t stop = 0;
+
+    uint16_t current_char = 0;
+
+    do
+    {
+        /* TODO Draw char */
+        /* For now just draw a line (temporary) */
+        YACSGL_line(frame, x_width + x_offset, y_height + y_offset, x_width + x_offset + font->width, y_height + y_offset, YACSGL_P_WHITE);
+
+
+        /* Increment current char */
+        current_char++;
+        x_offset += font->width;
+
+        /* Check newline condition */  
+        if(text[current_char] == '\r' || text[current_char] == '\n')
+        {
+            if(newline_mode == YACSGL_NEWLINE_DISABLED)
+            {
+                /* Stop the displaying of font */
+                stop = 1;
+            }
+            else
+            {
+                /* New line */
+                x_offset = 0;
+                y_offset += font->height;
+            }
+        }      
+
+        /* Check stop condition (end of string) */
+        if(text[current_char] == 0)
+        {
+            stop = 1;
+        }
+
+        /* Check stop condition (unable to draw a new char) */
+        if (        (x_width + x_offset + font->width >= frame->frame_x_width)
+                ||  (y_height + y_offset + font->height >= frame->frame_y_heigth)
+            )
+        {
+            stop = 1;;
+        }
+
+    }while(stop == 0);
+    
+
+
     return;
 }
 
@@ -77,3 +161,7 @@ void YACSGL_font_txt_disp(YACSGL_frame_t* frame,
 /**\} */
 
 /* EOF */
+
+	
+	
+	
