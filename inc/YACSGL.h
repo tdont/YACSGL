@@ -76,6 +76,7 @@ typedef struct
 
 /******************** API FUNCTION PROTOTYPE ************ ********************/
 /** \brief Set a pixel to the value given to the pen 
+ * /!\ For speed reason, this function has no check, make sure you are drawing inside the frame
  * 
  * \param frame     Frame where the paiting shall be done
  * \param x_width   Coordonate in the abscyss axe

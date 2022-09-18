@@ -79,16 +79,11 @@ static void YACSGL_line_no_check(YACSGL_frame_t* frame,
                         uint16_t y1, 
                         YACSGL_pixel_t pixel);
 /******************** API FUNCTIONS ******************************************/
-static inline void YACSGL_set_pixel(YACSGL_frame_t* frame, 
+inline void YACSGL_set_pixel(YACSGL_frame_t* frame, 
                         uint16_t x_width, 
                         uint16_t y_height, 
                         YACSGL_pixel_t pixel)
 {
-    // if (x_width >= frame->frame_x_width  || y_height >= frame->frame_y_heigth)
-    // {
-    //     return;
-    // }
-
     /* Retrieve the byte where the pixel to be changed lies */
     uint8_t tmp_byte = *(frame->frame_buffer + x_width / 8 + (y_height * frame->frame_x_width / 8));
 	// if (pixel == YACSGL_P_WHITE)

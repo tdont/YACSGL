@@ -59,6 +59,12 @@
 /******************** GLOBAL VARIABLES OF MODULE *****************************/
 
 /******************** LOCAL FUNCTION PROTOTYPE *******************************/
+static void YACSGL_font_draw_char(YACSGL_frame_t* frame, 
+                                    uint16_t x_width, 
+                                    uint16_t y_height, 
+                                    YACSGL_pixel_t pixel,
+                                    const YACSGL_font_t* const font,
+                                    char character);
 
 /******************** API FUNCTIONS ******************************************/
 void YACSGL_font_txt_disp(YACSGL_frame_t* frame, 
@@ -108,10 +114,8 @@ void YACSGL_font_txt_disp(YACSGL_frame_t* frame,
 
     do
     {
-        /* TODO Draw char */
-        /* For now just draw a line (temporary) */
-        YACSGL_line(frame, x_width + x_offset, y_height + y_offset, x_width + x_offset + font->width, y_height + y_offset, YACSGL_P_WHITE);
-
+        /* Draw char */
+        YACSGL_font_draw_char(frame, x_width + x_offset, y_height + y_offset, YACSGL_P_WHITE, font, text[current_char]);
 
         /* Increment current char */
         current_char++;
@@ -155,7 +159,39 @@ void YACSGL_font_txt_disp(YACSGL_frame_t* frame,
 }
 
 /******************** LOCAL FUNCTIONS ****************************************/
+static void YACSGL_font_draw_char(YACSGL_frame_t* frame, 
+                                    uint16_t x_width, 
+                                    uint16_t y_height, 
+                                    YACSGL_pixel_t pixel,
+                                    const YACSGL_font_t* const font,
+                                    char character)
+{
+    /* Check parameters */
+    char char_to_draw = character;
 
+    if((character < font->first_char) || (character > font->last_char))
+    {
+        char_to_draw = font->not_found_joker;
+    }
+
+    for(uint16_t y_char = 0; y_char < font->height; y_char++)
+    {
+        /* TODO handle the case where the block size is two bytes and not only one ! */
+        uint8_t current_val = font->table[(char_to_draw - font->first_char) * font->height];
+        for(uint16_t x_char = 0; x_char < font->width; x_char++)
+        {
+            /* TODO bugfix mirror */
+            if((current_val & (0b1 << (7 - (font->width - x_char - 1)))) != 0)
+            {
+                YACSGL_set_pixel(frame, x_width + x_char, y_height + y_char, pixel);
+            }
+        }
+    }
+
+
+    /* For debug only */
+    //YACSGL_line(frame, x_width, y_height, x_width + font->width, y_height, pixel);
+}
 
 /**\} */
 /**\} */
