@@ -114,36 +114,41 @@ void YACSGL_font_txt_disp(YACSGL_frame_t* frame,
 
     do
     {
-        /* Draw char */
-        YACSGL_font_draw_char(frame, x_width + x_offset, y_height + y_offset, YACSGL_P_WHITE, font, text[current_char]);
+        switch (text[current_char])
+		{
+			case '\r':
+			case '\n':
+				/* Check newline condition */
+				if (newline_mode == YACSGL_NEWLINE_DISABLED)
+				{
+					/* Stop the displaying of font */
+					stop = 1;
+				}
+				else
+				{
+					/* New line */
+					x_offset = 0;
+					y_offset += font->height;
+				}
+				break;
+			case ' ': /* Check space condition */
+				/* Add a space without drawing */
+				x_offset += font->width;
+				break;
+			case 0: /* End of line, stop */
+				stop = 1;
+				break;
+			default:
+				/* Draw char */
+				YACSGL_font_draw_char(frame, x_width + x_offset, y_height + y_offset, YACSGL_P_WHITE, font, text[current_char]);
+				x_offset += font->width;
+				break;
+		}
 
         /* Increment current char */
         current_char++;
-        x_offset += font->width;
 
-        /* Check newline condition */  
-        if(text[current_char] == '\r' || text[current_char] == '\n')
-        {
-            if(newline_mode == YACSGL_NEWLINE_DISABLED)
-            {
-                /* Stop the displaying of font */
-                stop = 1;
-            }
-            else
-            {
-                /* New line */
-                x_offset = 0;
-                y_offset += font->height;
-            }
-        }      
-
-        /* Check stop condition (end of string) */
-        if(text[current_char] == 0)
-        {
-            stop = 1;
-        }
-
-        /* Check stop condition (unable to draw a new char) */
+        /* Check stop condition (unable to draw a new char inside the frame) */
         if (        (x_width + x_offset + font->width >= frame->frame_x_width)
                 ||  (y_height + y_offset + font->height >= frame->frame_y_heigth)
             )
@@ -177,20 +182,16 @@ static void YACSGL_font_draw_char(YACSGL_frame_t* frame,
     for(uint16_t y_char = 0; y_char < font->height; y_char++)
     {
         /* TODO handle the case where the block size is two bytes and not only one ! */
-        uint8_t current_val = font->table[(char_to_draw - font->first_char) * font->height];
+        uint8_t current_val = font->table[((char_to_draw - font->first_char) * font->height) + y_char];
         for(uint16_t x_char = 0; x_char < font->width; x_char++)
         {
-            /* TODO bugfix mirror */
-            if((current_val & (0b1 << (7 - (font->width - x_char - 1)))) != 0)
+            /* Display pixel by pixel the font (TODO improve) */
+            if((current_val & (0b1 << (7 - x_char))) != 0)
             {
                 YACSGL_set_pixel(frame, x_width + x_char, y_height + y_char, pixel);
             }
         }
     }
-
-
-    /* For debug only */
-    //YACSGL_line(frame, x_width, y_height, x_width + font->width, y_height, pixel);
 }
 
 /**\} */
