@@ -56,7 +56,7 @@
 /******************** TYPE DEFINITION ****************************************/
 
 /******************** GLOBAL VARIABLES OF MODULE *****************************/
-uint8_t table[] = {
+static uint8_t table[] = {
 
 	/* Character (0x21):
 	 +----------------+

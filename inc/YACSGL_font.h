@@ -76,9 +76,9 @@ typedef struct
     uint8_t height;
     uint8_t width;
     uint8_t nb_byte_line;
-    char    first_char;
-    char    last_char;
-    char    not_found_joker;
+    unsigned char first_char;
+    unsigned char last_char;
+    unsigned char not_found_joker;
     uint8_t* table;
 }YACSGL_font_t;
 
