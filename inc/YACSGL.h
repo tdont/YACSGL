@@ -61,6 +61,7 @@ extern "C" {
 
 
 /******************** CONSTANTS OF MODULE ************************************/
+#define YACSGL_BUFFER_SIZE_COMPUTE(width, height)     (width * height / 8)
 
 /******************** MACROS DEFINITION **************************************/
 

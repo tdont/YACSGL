@@ -140,7 +140,7 @@ void YACSGL_font_txt_disp(YACSGL_frame_t* frame,
 				break;
 			default:
 				/* Draw char */
-				YACSGL_font_draw_char(frame, x_width + x_offset, y_height + y_offset, YACSGL_P_WHITE, font, text[current_char]);
+				YACSGL_font_draw_char(frame, x_width + x_offset, y_height + y_offset, pixel, font, text[current_char]);
 				x_offset += font->width;
 				break;
 		}
