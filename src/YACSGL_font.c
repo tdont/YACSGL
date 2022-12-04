@@ -49,6 +49,8 @@
 #include "YACSGL_font.h"
 #include "YACSGL.h"
 
+#include <stddef.h>
+
 /******************** CONSTANTS OF MODULE ************************************/
 #define YACSGL_FONT_MISSING_CHAR    ' '
 
