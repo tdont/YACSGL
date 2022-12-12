@@ -24,7 +24,7 @@
  * \{ */
 
 /**
- * \file YAGSGL_pixel.h
+ * \file YAGSGL.h
  *
  * File description
  * \author Thibaut DONTAIL
@@ -178,7 +178,7 @@ int32_t YACSGL_abs(int32_t value);
 #endif
 
 
-#endif /* INC_TEMPLATE_H_ */
+#endif /* INC_YACSGL_H_ */
 
 /**\} */
 /**\} */
