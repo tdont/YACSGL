@@ -65,14 +65,28 @@ extern "C" {
 /******************** MACROS DEFINITION **************************************/
 
 /******************** TYPE DEFINITION ****************************************/
+#ifdef __MINGW32__
+    #pragma pack(push,1)
+#endif
+
+/* Structure containing a 1bit per pixel bitmap,
+   Scan is horizontal(width) then vertical
+   Each horizontal line start with a new byte (in case width is not a multiple of 8)
+ */
+
 typedef struct
+#ifdef __GNUC__
+                __attribute__((packed))
+#endif
 {
-    uint8_t height;
-    uint8_t width;
-    uint8_t nb_byte_line;
-    uint8_t* bitmap_buffer;
+    uint16_t height;         
+    uint16_t width;
+    uint8_t* bitmap_buffer;    /* Shall contains at least height * width / 8 + ((width % 8) ? 1; 0)*/ 
 }YACSGL_bitmap_t;
 
+#ifdef __MINGW32__
+    #pragma pack(pop)
+#endif
 /******************** GLOBAL VARIABLES OF MODULE *****************************/
 
 /******************** API FUNCTION PROTOTYPE *********************************/
