@@ -107,7 +107,6 @@ void YACSGL_font_txt_disp(YACSGL_frame_t* frame,
         return;
     }
 
-    uint32_t current_line = 0;
     uint16_t x_offset = 0;
     uint16_t y_offset = 0;
     uint8_t stop = 0;

@@ -134,8 +134,8 @@ void YACSGL_rect_line(YACSGL_frame_t* frame,
  */
 void YACSGL_line(YACSGL_frame_t* frame, 
                         uint16_t x0, 
-                        uint16_t x1, 
                         uint16_t y0, 
+                        uint16_t x1, 
                         uint16_t y1, 
                         YACSGL_pixel_t pixel);      
 

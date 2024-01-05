@@ -70,19 +70,16 @@ static inline void YACSGL_set_pixel_no_offset(YACSGL_frame_t* frame,
                                               uint16_t y_height,
                                               YACSGL_pixel_t pixel)
 {
-    /* Retrieve the byte where the pixel to be changed lies */
-    uint8_t tmp_byte = *(frame->frame_buffer + x_width / 8 + (y_height * frame->frame_x_width / 8));
-    // if (pixel == YACSGL_P_WHITE)
-    // {
-    //	tmp_byte |= pixel << (7 - (x_width %8));
-    // }
-    // else
-    // {
-    //	tmp_byte &= ~(pixel << (7 - (x_width %8)));
-    // }
-    tmp_byte |= pixel << (7 - (x_width % 8));
-    tmp_byte &= ~(((!pixel) & 0b1) << (7 - (x_width % 8)));
-    *(frame->frame_buffer + x_width / 8 + (y_height * frame->frame_x_width / 8)) = tmp_byte;
+    size_t index = x_width + ((y_height / 8u) * frame->frame_x_width);
+    uint8_t bit = (1 << (y_height % 8));
+    if (pixel == YACSGL_P_WHITE)
+    {
+        frame->frame_buffer[index] |= bit;
+    }
+    else
+    {
+        frame->frame_buffer[index] &= ~(bit);
+    }
 }
 
 static void YACSGL_rect_fill_no_offset(YACSGL_frame_t* frame,
@@ -287,6 +284,7 @@ static void YACSGL_rect_fill_no_offset(YACSGL_frame_t* frame,
     }
 
     /* If a memset can trully occur */
+    unable_to_memset = 1;
     if (unable_to_memset == 0)
     {
         int32_t delta_y = y_final - y_topleft_height + 1; /* Compute how many line can be memset */
