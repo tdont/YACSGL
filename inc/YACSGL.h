@@ -70,6 +70,8 @@ typedef struct
 {
     uint16_t frame_x_width;  /* must be a multiple of 8 */
     uint16_t frame_y_heigth;
+    uint16_t offset_x;
+    uint16_t offset_y;
     uint8_t* frame_buffer;
 }YACSGL_frame_t;
 
