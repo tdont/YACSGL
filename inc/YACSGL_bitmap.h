@@ -81,7 +81,7 @@ typedef struct
 {
     uint16_t height;         
     uint16_t width;
-    uint8_t* bitmap_buffer;    /* Shall contains at least height * width / 8 + ((width % 8) ? 1; 0)*/ 
+    uint8_t* bitmap_buffer;    /* Shall contains at least height * (width / 8 + ((width % 8) ? 1; 0)) */ 
 }YACSGL_bitmap_t;
 
 #ifdef __MINGW32__
